@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 @Table(name = "monthly_workload",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_trainer_year_month",
-                columnNames = {"trainer_summary_id", "year", "month"}
+                columnNames = {"trainer_summary_id", "workload_year", "workload_month"}
         ))
 public class MonthlyWorkload {
 
@@ -19,15 +19,15 @@ public class MonthlyWorkload {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_summary_id", nullable = false)
     private TrainerSummary trainerSummary;
-    @Column(name = "year", nullable = false)
+    @Column(name = "workload_year", nullable = false)
     @Positive(message = "Year must be positive")
     private Integer year;
-    @Column(name = "month", nullable = false)
+    @Column(name = "workload_month", nullable = false)
     @Min(value = 1, message = "Month must be between 1 and 12")
     @Max(value = 12, message = "Month must be between 1 and 12")
     private Integer month;
-    @Column(name = "workload_hours", nullable = false)
-    @Positive(message = "Workload hours must be positive")
+    @Column(name = "workload_minutes", nullable = false)
+    @Positive(message = "Workload minutes must be positive")
     private Integer totalWorkload;
 
     public MonthlyWorkload() {

@@ -5,12 +5,12 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "trainer_workloads")
+@Table(name = "trainer_summary")
 public class TrainerSummary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -18,8 +18,7 @@ public class TrainerSummary {
     private String lastName;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-    @Column(name = "monthly_workload", nullable = false)  // in minutes
-    @OneToMany(mappedBy = "trainerSummary")
+    @OneToMany(mappedBy = "trainerSummary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MonthlyWorkload> monthlyWorkloads;
 
     public TrainerSummary() {
