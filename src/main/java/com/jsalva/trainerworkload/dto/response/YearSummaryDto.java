@@ -1,4 +1,9 @@
 package com.jsalva.trainerworkload.dto.response;
 
-public record YearSummaryDto() {
+import java.util.List;
+
+public record YearSummaryDto(
+        Integer year,
+        List<MonthSummaryDto> monthSummaryDtoList
+) {
 }

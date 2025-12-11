@@ -1,6 +1,8 @@
 package com.jsalva.trainerworkload.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 
 @Entity
@@ -18,12 +20,15 @@ public class MonthlyWorkload {
     @JoinColumn(name = "trainer_summary_id", nullable = false)
     private TrainerSummary trainerSummary;
     @Column(name = "year", nullable = false)
+    @Positive(message = "Year must be positive")
     private Integer year;
     @Column(name = "month", nullable = false)
+    @Min(value = 1, message = "Month must be between 1 and 12")
+    @Max(value = 12, message = "Month must be between 1 and 12")
     private Integer month;
     @Column(name = "workload_hours", nullable = false)
     @Positive(message = "Workload hours must be positive")
-    private Integer workloadHours;
+    private Integer totalWorkload;
 
     public MonthlyWorkload() {
     }
@@ -61,11 +66,11 @@ public class MonthlyWorkload {
     }
 
     public Integer getWorkloadHours() {
-        return workloadHours;
+        return totalWorkload;
     }
 
     public void setWorkloadHours(Integer workloadHours) {
-        this.workloadHours = workloadHours;
+        this.totalWorkload = workloadHours;
     }
 
     @Override
@@ -75,7 +80,7 @@ public class MonthlyWorkload {
                 ", trainerSummary=" + trainerSummary +
                 ", year=" + year +
                 ", month=" + month +
-                ", workloadHours=" + workloadHours +
+                ", workloadHours=" + totalWorkload +
                 '}';
     }
 }

@@ -2,16 +2,7 @@ package com.jsalva.trainerworkload.entity;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
 import java.util.List;
-
-//1. Trainer Username
-//2. Trainer First Name
-//3. Trainer Last Name
-//4. IsActive
-//5. Training date
-//6. Training duration
-//7. Action Type (ADD/DELETE)
 
 @Entity
 @Table(name = "trainer_workloads")
@@ -27,7 +18,7 @@ public class TrainerSummary {
     private String lastName;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-    @Column(name = "monthly_workload")
+    @Column(name = "monthly_workload", nullable = false)  // in minutes
     @OneToMany(mappedBy = "trainerSummary")
     private List<MonthlyWorkload> monthlyWorkloads;
 
