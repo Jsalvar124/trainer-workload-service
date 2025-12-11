@@ -3,6 +3,7 @@ package com.jsalva.trainerworkload.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 //1. Trainer Username
 //2. Trainer First Name
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "trainer_workloads")
-public class TrainerWorkload {
+public class TrainerSummary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,16 +27,11 @@ public class TrainerWorkload {
     private String lastName;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
-    @Column(name = "duration", nullable = false)
-    private Integer duration;
-    @Column(name = "action_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ActionType actionType;
+    @Column(name = "monthly_workload")
+    @OneToMany(mappedBy = "trainerSummary")
+    private List<MonthlyWorkload> monthlyWorkloads;
 
-
-    public TrainerWorkload() {
+    public TrainerSummary() {
     }
 
     public Long getId() {
@@ -78,41 +74,5 @@ public class TrainerWorkload {
         isActive = active;
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public Integer getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Integer duration) {
-        this.duration = duration;
-    }
-
-    public ActionType getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(ActionType actionType) {
-        this.actionType = actionType;
-    }
-
-    @Override
-    public String toString() {
-        return "TrainerWorkload{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", isActive=" + isActive +
-                ", date=" + date +
-                ", duration=" + duration +
-                ", actionType=" + actionType +
-                '}';
-    }
 }
