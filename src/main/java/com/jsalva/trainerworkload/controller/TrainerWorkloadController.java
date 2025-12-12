@@ -6,11 +6,9 @@ import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/workload")
@@ -29,5 +27,17 @@ public class TrainerWorkloadController {
     public ResponseEntity<Void> updateTrainerWorkload(@Valid @RequestBody TrainerWorkloadRequestDto requestDto){
         trainerWorkloadService.updateWorkload(requestDto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<TrainerWorkloadResponseDto> getTrainerWorkload(
+            @PathVariable String username,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month ){
+
+        logger.info("Received workload query for trainer: {}, year: {}, month: {}",
+                username, year, month);
+        TrainerWorkloadResponseDto response = trainerWorkloadService.getTrainerWorkload(username, year, month);
+        return ResponseEntity.ok(response);
     }
 }

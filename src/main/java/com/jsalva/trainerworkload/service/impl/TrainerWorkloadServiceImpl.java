@@ -134,6 +134,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     @Override
     public TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month) {
+        logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
         Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(username,year,month);
 

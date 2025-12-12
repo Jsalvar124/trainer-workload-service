@@ -39,3 +39,12 @@ logging:
   level:
     com.jsalva.trainerworkload: DEBUG
     org.springframework.security: DEBUG
+
+# Environment variables
+app:
+  data:
+    sync-on-startup: true
+
+main:
+  service:
+    url: http://localhost:8080
