@@ -65,12 +65,12 @@ public class MonthlyWorkload {
         this.month = month;
     }
 
-    public Integer getWorkloadHours() {
+    public Integer getTotalWorkload() {
         return totalWorkload;
     }
 
-    public void setWorkloadHours(Integer workloadHours) {
-        this.totalWorkload = workloadHours;
+    public void setTotalWorkload(Integer totalWorkload) {
+        this.totalWorkload = totalWorkload;
     }
 
     @Override

@@ -15,4 +15,6 @@ public interface MonthlyWorkloadRepository extends JpaRepository<MonthlyWorkload
             Integer year,
             Integer month
     );
+
+
 }

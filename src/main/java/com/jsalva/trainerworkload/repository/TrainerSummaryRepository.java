@@ -12,4 +12,5 @@ public interface TrainerSummaryRepository extends JpaRepository<TrainerSummary, 
     Optional<TrainerSummary> findByUsername(String username);
     // Check if exists
     boolean existsByUsername(String username);
+
 }
