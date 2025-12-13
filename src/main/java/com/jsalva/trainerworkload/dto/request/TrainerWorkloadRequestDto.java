@@ -39,7 +39,4 @@ public record TrainerWorkloadRequestDto(
         @NotNull(message = "Action type is required")
         ActionType actionType
 ) {
-
-
-
 }
