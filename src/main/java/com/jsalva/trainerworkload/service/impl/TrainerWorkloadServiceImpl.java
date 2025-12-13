@@ -1,7 +1,9 @@
 package com.jsalva.trainerworkload.service.impl;
 
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadRequestDto;
+import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
+import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.entity.ActionType;
 import com.jsalva.trainerworkload.entity.MonthlyWorkload;
 import com.jsalva.trainerworkload.entity.TrainerSummary;
@@ -13,7 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -136,12 +142,51 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     public TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month) {
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
-        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(username,year,month);
+        TrainerSummary trainer = trainerSummaryRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Trainer not found"));
 
-        if(result.isEmpty()){
-            logger.error("Result not found");
+        // Validate: if month is provided, year must also be provided
+        if (month != null && year == null) {
+            throw new IllegalArgumentException("Year is required when filtering by month");
+        }
+        List<MonthlyWorkload> workloads;
+        if(year == null){
+            workloads = monthlyWorkloadRepository.findByTrainerSummary_Username(username);
+        } else if(month == null){
+            workloads = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYear(username, year);
+        } else {
+            workloads = monthlyWorkloadRepository
+                    .findByTrainerSummary_UsernameAndYearAndMonth(username, year, month)
+                    .map(List::of)
+                    .orElse(List.of());
         }
 
-        return null;
+        Map<Integer, List<MonthlyWorkload>> byYear =
+                workloads.stream()
+                        .collect(Collectors.groupingBy(MonthlyWorkload::getYear));
+
+        List<YearSummaryDto> yearSummaries =
+                byYear.entrySet().stream()
+                        .map(entry -> new YearSummaryDto(
+                                entry.getKey(),
+                                entry.getValue().stream()
+                                        .map(mw -> new MonthSummaryDto(
+                                                mw.getMonth(),
+                                                mw.getTotalWorkload()
+                                        ))
+                                        .sorted(Comparator.comparing(MonthSummaryDto::month))
+                                        .toList()
+                        ))
+                        .sorted(Comparator.comparing(YearSummaryDto::year))
+                        .toList();
+
+        return new TrainerWorkloadResponseDto(
+                trainer.getUsername(),
+                trainer.getFirstName(),
+                trainer.getLastName(),
+                trainer.getActive(),
+                yearSummaries
+        );
     }
 }

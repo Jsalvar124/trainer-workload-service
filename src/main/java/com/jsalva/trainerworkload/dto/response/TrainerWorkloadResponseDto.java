@@ -1,5 +1,6 @@
 package com.jsalva.trainerworkload.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -10,6 +11,7 @@ public record TrainerWorkloadResponseDto(
         String firstName,
         String lastName,
         Boolean isActive,
+        @JsonProperty("years")
         List<YearSummaryDto> yearSummaryDtoList
 ) {
 }
