@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.hibernate.annotations.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,6 +54,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Set authentication in Spring Security context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
+                logger.info("Authenticated user={}, authorities={}",
+                        authentication.getName(),
+                        authentication.getAuthorities()
+                );
                 logger.debug("Set authentication for user: {} with role: ROLE_{}", username, userType);
             }
         }catch (Exception e){
