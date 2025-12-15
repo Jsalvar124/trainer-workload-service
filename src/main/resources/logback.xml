@@ -1,0 +1,22 @@
+<configuration>
+
+    <appender name="STDOUT"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- MDC transactionId -->
+            <pattern>%d{HH:mm:ss.SSS} [%X{transactionId}] %-5level %logger{36} - %msg%n</pattern>
+
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <!-- Your app -->
+    <logger name="com.jsalva.trainerworkload" level="DEBUG"/>
+
+    <!-- Security noise (optional) -->
+    <logger name="org.springframework.security" level="INFO"/>
+
+</configuration>

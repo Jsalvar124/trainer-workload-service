@@ -62,7 +62,7 @@ public class TrainingDataInitializer implements CommandLineRunner {
 
         logger.info("Sending GET request to: {}", url);
 
-
+        //TODO
 
     }
 }

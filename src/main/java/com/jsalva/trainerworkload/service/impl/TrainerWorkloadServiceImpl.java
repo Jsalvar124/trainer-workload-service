@@ -4,7 +4,6 @@ import com.jsalva.trainerworkload.dto.request.TrainerWorkloadRequestDto;
 import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
-import com.jsalva.trainerworkload.entity.ActionType;
 import com.jsalva.trainerworkload.entity.MonthlyWorkload;
 import com.jsalva.trainerworkload.entity.TrainerSummary;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
