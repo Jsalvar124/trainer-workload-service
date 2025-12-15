@@ -1,7 +1,6 @@
 package com.jsalva.trainerworkload.dto.external;
 
-import java.time.LocalDate;
-
+//TODO: Implement Synchronization with main service on startup
 public record TrainingResponseDto(
 ) {
 
