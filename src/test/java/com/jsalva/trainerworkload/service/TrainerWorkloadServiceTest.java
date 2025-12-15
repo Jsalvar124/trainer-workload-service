@@ -1,6 +1,9 @@
 package com.jsalva.trainerworkload.service;
 
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadRequestDto;
+import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
+import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
+import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.entity.ActionType;
 import com.jsalva.trainerworkload.entity.MonthlyWorkload;
 import com.jsalva.trainerworkload.entity.TrainerSummary;
@@ -15,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -205,5 +209,50 @@ public class TrainerWorkloadServiceTest {
         verify(monthlyWorkloadRepository, never()).save(any());
         verify(monthlyWorkloadRepository, never()).delete(any());
     }
+
+    @Test
+    void getWorkload_existingTrainer_returnsAggregatedData() {
+        // given
+        TrainerSummary trainer = new TrainerSummary();
+        trainer.setId(1L);
+        trainer.setUsername("Juan.Perez");
+        trainer.setFirstName("Juan");
+        trainer.setLastName("Perez");
+        trainer.setActive(true);
+
+        MonthlyWorkload workload = new MonthlyWorkload();
+        workload.setTrainerSummary(trainer);
+        workload.setYear(2025);
+        workload.setMonth(12);
+        workload.setTotalWorkload(240);
+
+        when(trainerSummaryRepository.findByUsername("Juan.Perez"))
+                .thenReturn(Optional.of(trainer));
+
+        when(monthlyWorkloadRepository.findByTrainerSummary_Username("Juan.Perez"))
+                .thenReturn(List.of(workload));
+
+        // when
+        TrainerWorkloadResponseDto result =
+                trainerWorkloadService.getTrainerWorkload("Juan.Perez", null, null);
+
+        // then
+        assertEquals("Juan.Perez", result.username());
+        assertEquals("Juan", result.firstName());
+        assertEquals("Perez", result.lastName());
+        assertTrue(result.isActive());
+
+        assertEquals(1, result.yearSummaryDtoList().size());
+
+        YearSummaryDto yearSummary = result.yearSummaryDtoList().get(0);
+        assertEquals(2025, yearSummary.year());
+
+        assertEquals(1, yearSummary.monthSummaryDtoList().size());
+
+        MonthSummaryDto monthSummary = yearSummary.monthSummaryDtoList().get(0);
+        assertEquals(12, monthSummary.month());
+        assertEquals(240, monthSummary.totalWorkload());
+    }
+
 
 }
