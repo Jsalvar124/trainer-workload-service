@@ -1,21 +1,19 @@
 package com.jsalva.trainerworkload.service;
 
-import com.jsalva.trainerworkload.dto.request.TrainerWorkloadRequestDto;
+import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
+import com.jsalva.trainerworkload.dto.request.TrainerWorkloadQueryMessageDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
+import com.jsalva.trainerworkload.enums.ActionType;
 
 public interface TrainerWorkloadService {
     /**
      * Process trainer workload (ADD or DELETE training)
      */
-    void updateWorkload(TrainerWorkloadRequestDto requestDto);
+    void updateWorkload(TrainerWorkloadCommandMessageDto messageDto, ActionType actionType);
 
     /**
-     * Get trainer's workload history with optional filtering
-     * @param username the trainer's username
-     * @param year optional year filter (null = all years)
-     * @param month optional month filter (null = all months, requires year)
-     * @return nested structure of years → months → duration
+     * Get trainer's workload history with optional filtering (QUERY training)
      */
-    TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month);
+    TrainerWorkloadResponseDto getTrainerWorkload(TrainerWorkloadQueryMessageDto messageDto, ActionType actionType);
 
 }

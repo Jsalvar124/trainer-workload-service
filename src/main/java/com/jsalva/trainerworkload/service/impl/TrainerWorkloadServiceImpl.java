@@ -1,11 +1,13 @@
 package com.jsalva.trainerworkload.service.impl;
 
-import com.jsalva.trainerworkload.dto.request.TrainerWorkloadRequestDto;
+import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
+import com.jsalva.trainerworkload.dto.request.TrainerWorkloadQueryMessageDto;
 import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.entity.MonthlyWorkload;
 import com.jsalva.trainerworkload.entity.TrainerSummary;
+import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
 import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
@@ -36,12 +38,12 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     @Override
-    public void updateWorkload(TrainerWorkloadRequestDto requestDto) {
-        logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), requestDto.actionType());
+    public void updateWorkload(TrainerWorkloadCommandMessageDto requestDto, ActionType actionType) {
+        logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), actionType);
 
         TrainerSummary trainerSummary = findOrCreateTrainerSummary(requestDto);
 
-        switch (requestDto.actionType()){
+        switch (actionType){
             case ADD -> {
                 logger.info("Attempting to Add workload to database");
                 addWorkload(trainerSummary, requestDto);
@@ -50,7 +52,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 logger.info("Attempting to Delete workload from database");
                 deleteWorkload(trainerSummary, requestDto);
             } case null, default -> throw new IllegalArgumentException(
-                    "Unsupported action: " + requestDto.actionType()
+                    "Unsupported action: " + actionType
             );
         }
 
@@ -58,7 +60,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     // HELPER METHODS
 
-    private TrainerSummary findOrCreateTrainerSummary(TrainerWorkloadRequestDto requestDto) {
+    private TrainerSummary findOrCreateTrainerSummary(TrainerWorkloadCommandMessageDto requestDto) {
         String username = requestDto.username();
         return trainerSummaryRepository.findByUsername(username)
                 .map(existing -> {
@@ -76,7 +78,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 });
     }
 
-    private void addWorkload(TrainerSummary trainerSummary, TrainerWorkloadRequestDto requestDto){
+    private void addWorkload(TrainerSummary trainerSummary, TrainerWorkloadCommandMessageDto requestDto){
 
         // Check if there is any training data for the given month.
         Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerSummary.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
@@ -104,7 +106,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
     }
 
-    private void deleteWorkload(TrainerSummary trainerSummary, TrainerWorkloadRequestDto requestDto){
+    private void deleteWorkload(TrainerSummary trainerSummary, TrainerWorkloadCommandMessageDto requestDto){
         // Check if there is any training data for the given month.
         Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerSummary.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
         if(result.isPresent()){
@@ -138,7 +140,10 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
 
     @Override
-    public TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month) {
+    public TrainerWorkloadResponseDto getTrainerWorkload(TrainerWorkloadQueryMessageDto messageDto, ActionType actionType) {
+        String username = messageDto.username();
+        Integer year = messageDto.year();
+        Integer month = messageDto.month();
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
         TrainerSummary trainer = trainerSummaryRepository
