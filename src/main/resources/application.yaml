@@ -24,30 +24,9 @@ spring:
       enabled: true
       path: /h2-console
 
-# Eureka Client Configuration
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-
 # Logging Configuration
 logging:
   level:
     com.jsalva.trainerworkload: DEBUG
     org.springframework.security: DEBUG
 
-# Environment variables
-app:
-  data:
-    sync-on-startup: true
-
-main:
-  service:
-    url: http://localhost:8080
-
-jwt:
-  secret: ${JWT_SECRET}
