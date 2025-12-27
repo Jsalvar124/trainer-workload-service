@@ -1,20 +1,22 @@
 package com.jsalva.trainerworkload.service.impl;
 
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
-import com.jsalva.trainerworkload.dto.request.TrainerWorkloadQueryMessageDto;
 import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.entity.MonthlyWorkload;
 import com.jsalva.trainerworkload.entity.TrainerSummary;
 import com.jsalva.trainerworkload.enums.ActionType;
+import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
 import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
 import java.util.List;
@@ -23,7 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Validated
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerSummaryRepository trainerSummaryRepository;
@@ -38,6 +40,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     @Override
+    @Transactional
     public void updateWorkload(TrainerWorkloadCommandMessageDto requestDto, ActionType actionType) {
         logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), actionType);
 
@@ -140,15 +143,13 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
 
     @Override
-    public TrainerWorkloadResponseDto getTrainerWorkload(TrainerWorkloadQueryMessageDto messageDto, ActionType actionType) {
-        String username = messageDto.username();
-        Integer year = messageDto.year();
-        Integer month = messageDto.month();
+    public TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month) {
+
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
         TrainerSummary trainer = trainerSummaryRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Trainer not found"));
+                .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
 
         // Validate: if month is provided, year must also be provided
         if (month != null && year == null) {
