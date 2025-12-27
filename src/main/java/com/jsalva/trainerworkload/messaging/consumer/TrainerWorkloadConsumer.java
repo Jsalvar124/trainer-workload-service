@@ -32,13 +32,6 @@ public class TrainerWorkloadConsumer {
             @Header("X-Transaction-Id") String transactionId,
             @Header("X-Action-Type") String actionType){
 
-        System.out.println("Received message: username "+ messageDto.username());
-
-        // Test error Handling and Dead Letter
-        if(messageDto.username().equals("Error.Test")){
-            throw new IllegalArgumentException("Error, Invalid Name");
-        }
-
         // Extract headers
         try {
             // Set MDC for logging
@@ -47,6 +40,10 @@ public class TrainerWorkloadConsumer {
             logger.info("Received workload message. Trainer={}, Action={}, TxId={}",
                     messageDto.username(), actionType, transactionId);
 
+            // Test error Handling and Dead Letter
+            if(messageDto.username().equals("Error.Test")){
+                throw new IllegalArgumentException("Error, Invalid Name");
+            }
             // Validate action type
             ActionType action = ActionType.valueOf(actionType);
 
@@ -64,7 +61,7 @@ public class TrainerWorkloadConsumer {
 
         } catch (IllegalArgumentException e) {
             logger.error("Invalid message format. TxId={}", transactionId, e);
-            throw new RuntimeException("Invalid message", e);  // Goes to DLQ
+            throw new RuntimeException("Invalid message "+e.getMessage());  // Goes to DLQ
 
         } finally {
             MDC.clear();
