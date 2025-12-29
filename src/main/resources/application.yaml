@@ -34,11 +34,3 @@ logging:
   level:
     com.jsalva.trainerworkload: DEBUG
     org.springframework.security: DEBUG
-
-#logging:
-#  level:
-#    org:
-#      apache:
-#        activemq: DEBUG
-#      springframework:
-#        jms: DEBUG
