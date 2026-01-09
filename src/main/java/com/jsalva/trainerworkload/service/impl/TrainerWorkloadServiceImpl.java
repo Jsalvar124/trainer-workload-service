@@ -26,14 +26,11 @@ import java.util.stream.Collectors;
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerWorkloadRepository trainerWorkloadRepository;
-    private final MonthlyWorkloadRepository monthlyWorkloadRepository;
-
 
     private static final Logger logger = LoggerFactory.getLogger(TrainerWorkloadServiceImpl.class);
 
-    public TrainerWorkloadServiceImpl(TrainerWorkloadRepository trainerWorkloadRepository, MonthlyWorkloadRepository monthlyWorkloadRepository) {
+    public TrainerWorkloadServiceImpl(TrainerWorkloadRepository trainerWorkloadRepository) {
         this.trainerWorkloadRepository = trainerWorkloadRepository;
-        this.monthlyWorkloadRepository = monthlyWorkloadRepository;
     }
 
     @Override
@@ -55,7 +52,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                     "Unsupported action: " + actionType
             );
         }
-
     }
 
     // HELPER METHODS
@@ -73,37 +69,54 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                     newTrainer.setUsername(username);
                     newTrainer.setFirstName(requestDto.firstName());
                     newTrainer.setLastName(requestDto.lastName());
-                    newTrainer.setActive(requestDto.isActive());
+                    newTrainer.setIsActive(requestDto.isActive());
                     return trainerWorkloadRepository.save(newTrainer);
                 });
     }
 
     private void addWorkload(TrainerMonthlyWorkload trainerMonthlyWorkload, TrainerWorkloadCommandMessageDto requestDto){
 
-        // Check if there is any training data for the given month.
-        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerMonthlyWorkload.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
-        if(result.isPresent()){
-            // There is data for the given month
-            MonthlyWorkload monthlyWorkload = result.get();
-            monthlyWorkload.setTotalWorkload(monthlyWorkload.getTotalWorkload() + requestDto.trainingDuration()); // add new training duration in minutes
-            monthlyWorkloadRepository.save(monthlyWorkload);
-            logger.debug("Updated workload for {}-{}: {} minutes",
-                    monthlyWorkload.getYear(),
-                    monthlyWorkload.getMonth(),
-                    monthlyWorkload.getTotalWorkload());
-        } else{
-            // the given month has no trainings. Create new register.
-            MonthlyWorkload newWorkload = new MonthlyWorkload();
-            newWorkload.setTrainerSummary(trainerMonthlyWorkload);
-            newWorkload.setYear(requestDto.trainingDate().getYear());
-            newWorkload.setMonth(requestDto.trainingDate().getMonthValue());
-            newWorkload.setTotalWorkload(requestDto.trainingDuration());
-            monthlyWorkloadRepository.save(newWorkload);
-            logger.debug("Created new workload for {}-{}: {} minutes",
-                    newWorkload.getYear(),
-                    newWorkload.getMonth(),
-                    newWorkload.getTotalWorkload());
-        }
+        // Extract data from dto
+        int year = requestDto.trainingDate().getYear();
+        int month = requestDto.trainingDate().getMonthValue();
+        int duration = requestDto.trainingDuration();
+
+        // Find or Create YearSummary (Inside TrainerMonthly Workload)
+        TrainerMonthlyWorkload.YearSummary yearSummary = trainerMonthlyWorkload.getYears().stream()
+                .filter(y-> y.getYear().equals(year))
+                .findFirst()
+                .orElseGet( () -> {
+                    logger.debug("Creating new Month Summary for year {}", year);
+                    TrainerMonthlyWorkload.YearSummary newYear = new TrainerMonthlyWorkload.YearSummary();
+                    newYear.setYear(year);
+                    trainerMonthlyWorkload.getYears().add(newYear);
+                    return newYear;
+                    }
+                );
+
+        // Find or create MonthSummary (inside TrainerMonthlyWorkload)
+        TrainerMonthlyWorkload.MonthSummary monthSummary = yearSummary.getMonths().stream()
+                .filter(m -> m.getMonth().equals(month))
+                .findFirst()
+                .orElseGet(() -> {
+                    logger.debug("Creating new Month Summary for month {}", month);
+                    TrainerMonthlyWorkload.MonthSummary newMonth = new TrainerMonthlyWorkload.MonthSummary();
+                    newMonth.setMonth(month);
+                    newMonth.setTotalWorkload(0);
+                    yearSummary.getMonths().add(newMonth); // get the list of monthSummaries and add the new one.
+                    return newMonth;
+                });
+
+        // Update month workload total
+        int currentWorkload = monthSummary.getTotalWorkload();
+        monthSummary.setTotalWorkload(currentWorkload + duration);
+        // Save in database
+        trainerWorkloadRepository.save(trainerMonthlyWorkload);
+        logger.debug("Updated workload for {}-{}: {} minutes",
+                yearSummary.getYear(),
+                monthSummary.getMonth(),
+                monthSummary.getTotalWorkload()
+        );
     }
 
     private void deleteWorkload(TrainerMonthlyWorkload trainerMonthlyWorkload, TrainerWorkloadCommandMessageDto requestDto){
