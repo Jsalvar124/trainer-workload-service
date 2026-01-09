@@ -9,7 +9,6 @@ import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
 import com.jsalva.trainerworkload.repository.TrainerWorkloadRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,6 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Validated
@@ -34,7 +30,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     @Override
-    @Transactional
     public void updateWorkload(TrainerWorkloadCommandMessageDto requestDto, ActionType actionType) {
         logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), actionType);
 
@@ -120,87 +115,99 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     private void deleteWorkload(TrainerMonthlyWorkload trainerMonthlyWorkload, TrainerWorkloadCommandMessageDto requestDto){
+        int year = requestDto.trainingDate().getYear();
+        int month = requestDto.trainingDate().getMonthValue();
+        int duration = requestDto.trainingDuration();
+
+        // Check if there is any training data for the given year.
+        TrainerMonthlyWorkload.YearSummary yearSummary = trainerMonthlyWorkload.getYears().stream()
+                .filter(y -> y.getYear().equals(year))
+                .findFirst()
+                .orElse(null);
+
+        if(yearSummary == null){
+            logger.error("Workload for year {} not found - trainer {}", year, trainerMonthlyWorkload.getUsername());
+            return;
+        }
+
         // Check if there is any training data for the given month.
-        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerMonthlyWorkload.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
-        if(result.isPresent()){
-            // There is data for the given month
-            MonthlyWorkload monthlyWorkload = result.get();
-            // Check final workload is positive
-            int finalWorkload = monthlyWorkload.getTotalWorkload() - requestDto.trainingDuration(); // subtract training duration
-            if (finalWorkload <= 0) {
-                monthlyWorkloadRepository.delete(monthlyWorkload); // delete row if it reaches zero or negative
-                logger.info("Workload for {} {}/{} removed (became zero or negative)",
-                        trainerMonthlyWorkload.getUsername(),
-                        monthlyWorkload.getYear(),
-                        monthlyWorkload.getMonth());
-                return;
+        TrainerMonthlyWorkload.MonthSummary monthSummary = yearSummary.getMonths().stream()
+                .filter(m -> m.getMonth().equals(month))
+                .findFirst()
+                .orElse(null);
+
+        if(monthSummary == null){
+            logger.error("Workload for month {} on year {} not found - trainer {} ", month,  year, trainerMonthlyWorkload.getUsername());
+            return;
+        }
+        // Check final workload is positive
+        int finalWorkload = monthSummary.getTotalWorkload() - requestDto.trainingDuration();
+        if(finalWorkload <= 0){
+            yearSummary.getMonths().remove(monthSummary);
+            logger.info("Removed month {} from year {} (workload became zero/negative)", month, year);
+            // If year has no months left, remove year too
+            if (yearSummary.getMonths().isEmpty()) {
+                trainerMonthlyWorkload.getYears().remove(yearSummary);
+                logger.info("Removed year {}, no months remaining", year);
             }
-            monthlyWorkload.setTotalWorkload(finalWorkload); // update training duration in minutes
-            monthlyWorkloadRepository.save(monthlyWorkload);
-            logger.debug("Updated workload for {}-{}: {} minutes",
-                    monthlyWorkload.getYear(),
-                    monthlyWorkload.getMonth(),
-                    monthlyWorkload.getTotalWorkload());
-        } else{
-            logger.warn("No existing workload found for {} - {}/{}",
-                    trainerMonthlyWorkload.getUsername(),
-                    requestDto.trainingDate().getYear(),
-                    requestDto.trainingDate().getMonthValue());
-            // nothing to remove
+        } else {
+            monthSummary.setTotalWorkload(finalWorkload);
+            logger.debug("Reduced workload for {}-{}: {} minutes remaining", year, month, finalWorkload);
         }
     }
-
-
 
     @Override
     public TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month) {
 
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
-        TrainerMonthlyWorkload trainer = trainerWorkloadRepository
-                .findByUsername(username)
-                .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
-
         // Validate: if month is provided, year must also be provided
         if (month != null && year == null) {
             throw new IllegalArgumentException("Year is required when filtering by month");
         }
-        List<MonthlyWorkload> workloads;
-        if(year == null){
-            workloads = monthlyWorkloadRepository.findByTrainerSummary_Username(username);
-        } else if(month == null){
-            workloads = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYear(username, year);
-        } else {
-            workloads = monthlyWorkloadRepository
-                    .findByTrainerSummary_UsernameAndYearAndMonth(username, year, month)
-                    .map(List::of)
-                    .orElse(List.of());
+
+        // Check if trainer exists
+        TrainerMonthlyWorkload trainer = trainerWorkloadRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
+
+        // Filter years based on parameters
+        List<TrainerMonthlyWorkload.YearSummary> filteredYears = trainer.getYears();
+
+        if (year != null) {
+            filteredYears = filteredYears.stream()
+                    .filter(y -> y.getYear().equals(year))
+                    .toList();
         }
 
-        Map<Integer, List<MonthlyWorkload>> byYear =
-                workloads.stream()
-                        .collect(Collectors.groupingBy(MonthlyWorkload::getYear));
+        // Map to DTOs
+        List<YearSummaryDto> yearSummaries = filteredYears.stream()
+                .map(yearSummary -> {
+                    // Filter months if specified
+                    List<TrainerMonthlyWorkload.MonthSummary> months = yearSummary.getMonths();
+                    if (month != null) {
+                        months = months.stream()
+                                .filter(m -> m.getMonth().equals(month))
+                                .toList();
+                    }
 
-        List<YearSummaryDto> yearSummaries =
-                byYear.entrySet().stream()
-                        .map(entry -> new YearSummaryDto(
-                                entry.getKey(),
-                                entry.getValue().stream()
-                                        .map(mw -> new MonthSummaryDto(
-                                                mw.getMonth(),
-                                                mw.getTotalWorkload()
-                                        ))
-                                        .sorted(Comparator.comparing(MonthSummaryDto::month))
-                                        .toList()
-                        ))
-                        .sorted(Comparator.comparing(YearSummaryDto::year))
-                        .toList();
+                    // Map months to DTOs
+                    List<MonthSummaryDto> monthDtos = months.stream()
+                            .map(m -> new MonthSummaryDto(m.getMonth(), m.getTotalWorkload()))
+                            .sorted(Comparator.comparing(MonthSummaryDto::month))
+                            .toList();
+
+                    return new YearSummaryDto(yearSummary.getYear(), monthDtos);
+                })
+                .filter(y -> !y.monthSummaryDtoList().isEmpty()) // Remove years with no matching months
+                .sorted(Comparator.comparing(YearSummaryDto::year))
+                .toList();
 
         return new TrainerWorkloadResponseDto(
                 trainer.getUsername(),
                 trainer.getFirstName(),
                 trainer.getLastName(),
-                trainer.getActive(),
+                trainer.getIsActive(),
                 yearSummaries
         );
     }

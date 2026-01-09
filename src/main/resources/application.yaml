@@ -14,28 +14,10 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: trainerworkloaddb
+      database: trainer_workload
       username: admin
       password: password
-
-  # H2 In-Memory Database (replaced by mongo)
-#  datasource:
-#    url: jdbc:h2:mem:trainerworkloaddb
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password:
-
-#  jpa:
-#    database-platform: org.hibernate.dialect.H2Dialect
-#    hibernate:
-#      ddl-auto: create-drop  # Recreates schema on restart (in-memory)
-#    show-sql: true
-
-  # H2 Console (optional, for debugging)
-#  h2:
-#    console:
-#      enabled: true
-#      path: /h2-console
+      authentication-database: admin
 
 # Logging Configuration
 logging:

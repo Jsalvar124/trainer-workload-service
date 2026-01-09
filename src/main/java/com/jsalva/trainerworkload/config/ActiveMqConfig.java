@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
 import jakarta.jms.ConnectionFactory;
-import jakarta.persistence.EntityManagerFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.RedeliveryPolicy;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.connection.JmsTransactionManager;
@@ -21,8 +19,6 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.HashMap;
@@ -86,13 +82,7 @@ public class ActiveMqConfig {
         return factory;
     }
 
-    @Bean(name = "transactionManager")
-    @Primary
-    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
-        return new JpaTransactionManager(emf);
-    }
-
-    @Bean(name = "jmsTransactionManager")
+    @Bean
     public JmsTransactionManager jmsTransactionManager(ConnectionFactory connectionFactory) {
         return new JmsTransactionManager(connectionFactory);
     }
