@@ -4,6 +4,8 @@ import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.enums.ActionType;
 
+import java.util.List;
+
 public interface TrainerWorkloadService {
     /**
      * Process trainer workload (ADD or DELETE training)
@@ -19,4 +21,11 @@ public interface TrainerWorkloadService {
      */
     TrainerWorkloadResponseDto getTrainerWorkload(String username, Integer year, Integer month);
 
+    /**
+     * Search trainers workload by first name and/or lastname
+     * @param firstName the trainer's first name (null = all trainers)
+     * @param lastName optional year filter
+     * @return nested structure of years → months → duration
+     */
+    List<TrainerWorkloadResponseDto> searchTrainersByName(String firstName, String lastName);
 }

@@ -4,6 +4,7 @@ import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,4 +15,7 @@ public interface TrainerWorkloadRepository extends MongoRepository<TrainerMonthl
 
     boolean existsByUsername(String username);
 
+    List<TrainerMonthlyWorkload> findByFirstNameAndLastName(String firstName, String lastName);
+    List<TrainerMonthlyWorkload> findByFirstName(String firstName);
+    List<TrainerMonthlyWorkload> findByLastName(String lastName);
 }

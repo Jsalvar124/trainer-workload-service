@@ -12,6 +12,7 @@ import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
@@ -30,6 +31,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     @Override
+    @Transactional
     public void updateWorkload(TrainerWorkloadCommandMessageDto requestDto, ActionType actionType) {
         logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), actionType);
 
