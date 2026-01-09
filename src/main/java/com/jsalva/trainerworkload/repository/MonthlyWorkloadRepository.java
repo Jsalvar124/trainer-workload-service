@@ -1,6 +1,6 @@
 package com.jsalva.trainerworkload.repository;
 
-import com.jsalva.trainerworkload.entity.MonthlyWorkload;
+import com.jsalva.trainerworkload.domain.MonthlyWorkload;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -2,8 +2,8 @@
 package com.jsalva.trainerworkload.messaging.consumer;
 
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
-import com.jsalva.trainerworkload.entity.MonthlyWorkload;
-import com.jsalva.trainerworkload.entity.TrainerSummary;
+import com.jsalva.trainerworkload.domain.MonthlyWorkload;
+import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
 import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -68,7 +66,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Wait for async processing and verify
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> trainer = trainerSummaryRepository.findByUsername("john.doe");
+            Optional<TrainerMonthlyWorkload> trainer = trainerSummaryRepository.findByUsername("john.doe");
             assertThat(trainer).isPresent();
             assertThat(trainer.get().getFirstName()).isEqualTo("John");
             assertThat(trainer.get().getLastName()).isEqualTo("Doe");
@@ -85,7 +83,7 @@ class TrainerWorkloadConsumerTest {
     @Test
     void shouldProcessAddMessageAndIncrementExistingWorkload() {
         // Given - Existing trainer with workload
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setUsername("jane.smith");
         trainer.setFirstName("Jane");
         trainer.setLastName("Smith");
@@ -117,7 +115,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Workload should be incremented
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> updatedTrainer = trainerSummaryRepository.findByUsername("jane.smith");
+            Optional<TrainerMonthlyWorkload> updatedTrainer = trainerSummaryRepository.findByUsername("jane.smith");
             assertThat(updatedTrainer).isPresent();
 
             Optional<MonthlyWorkload> workload = monthlyWorkloadRepository
@@ -130,7 +128,7 @@ class TrainerWorkloadConsumerTest {
     @Test
     void shouldProcessDeleteMessageAndDecrementWorkload() {
         // Given - Existing trainer with workload
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setUsername("bob.johnson");
         trainer.setFirstName("Bob");
         trainer.setLastName("Johnson");
@@ -162,7 +160,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Workload should be decremented
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> updatedTrainer = trainerSummaryRepository.findByUsername("bob.johnson");
+            Optional<TrainerMonthlyWorkload> updatedTrainer = trainerSummaryRepository.findByUsername("bob.johnson");
             assertThat(updatedTrainer).isPresent();
 
             Optional<MonthlyWorkload> workload = monthlyWorkloadRepository
@@ -175,7 +173,7 @@ class TrainerWorkloadConsumerTest {
     @Test
     void shouldProcessDeleteMessageAndRemoveWorkloadWhenReachesZero() {
         // Given - Existing trainer with exact workload that will be deleted
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setUsername("alice.williams");
         trainer.setFirstName("Alice");
         trainer.setLastName("Williams");
@@ -207,7 +205,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Monthly workload entry should be completely removed
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> updatedTrainer = trainerSummaryRepository.findByUsername("alice.williams");
+            Optional<TrainerMonthlyWorkload> updatedTrainer = trainerSummaryRepository.findByUsername("alice.williams");
             assertThat(updatedTrainer).isPresent();
 
             Optional<MonthlyWorkload> workload = monthlyWorkloadRepository
@@ -237,7 +235,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Message should NOT create a trainer (processing failed)
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> trainer = trainerSummaryRepository.findByUsername("Error.Test");
+            Optional<TrainerMonthlyWorkload> trainer = trainerSummaryRepository.findByUsername("Error.Test");
             assertThat(trainer).isEmpty(); // Should not be created due to error
         });
 
@@ -266,7 +264,7 @@ class TrainerWorkloadConsumerTest {
 
         // Then - Message should fail and not create trainer
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-            Optional<TrainerSummary> trainer = trainerSummaryRepository.findByUsername("test.user");
+            Optional<TrainerMonthlyWorkload> trainer = trainerSummaryRepository.findByUsername("test.user");
             assertThat(trainer).isEmpty();
         });
     }
@@ -337,7 +335,7 @@ class TrainerWorkloadConsumerTest {
         Thread.sleep(15_000);
 
         // Verify no trainer was created (all attempts failed)
-        Optional<TrainerSummary> trainer = trainerSummaryRepository.findByUsername("Error.Test");
+        Optional<TrainerMonthlyWorkload> trainer = trainerSummaryRepository.findByUsername("Error.Test");
         assertThat(trainer).isEmpty();
     }
 
@@ -379,7 +377,7 @@ class TrainerWorkloadConsumerTest {
         assertThat(totalDuration).isLessThan(18_000);    // Less than 18 seconds
 
         // Verify no trainer was created
-        Optional<TrainerSummary> trainer = trainerSummaryRepository.findByUsername("Error.Test");
+        Optional<TrainerMonthlyWorkload> trainer = trainerSummaryRepository.findByUsername("Error.Test");
         assertThat(trainer).isEmpty();
     }
 }

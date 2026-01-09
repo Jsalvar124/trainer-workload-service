@@ -1,4 +1,4 @@
-package com.jsalva.trainerworkload.entity;
+package com.jsalva.trainerworkload.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -18,7 +18,8 @@ public class MonthlyWorkload {
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_summary_id", nullable = false)
-    private TrainerSummary trainerSummary;
+    private TrainerMonthlyWorkload trainerMonthlyWorkload;
+
     @Column(name = "workload_year", nullable = false)
     @Positive(message = "Year must be positive")
     private Integer year;
@@ -41,12 +42,12 @@ public class MonthlyWorkload {
         this.id = id;
     }
 
-    public TrainerSummary getTrainerSummary() {
-        return trainerSummary;
+    public TrainerMonthlyWorkload getTrainerSummary() {
+        return trainerMonthlyWorkload;
     }
 
-    public void setTrainerSummary(TrainerSummary trainerSummary) {
-        this.trainerSummary = trainerSummary;
+    public void setTrainerSummary(TrainerMonthlyWorkload trainerMonthlyWorkload) {
+        this.trainerMonthlyWorkload = trainerMonthlyWorkload;
     }
 
     public Integer getYear() {
@@ -77,7 +78,7 @@ public class MonthlyWorkload {
     public String toString() {
         return "MonthlyWorkload{" +
                 "id=" + id +
-                ", trainerSummary=" + trainerSummary +
+                ", trainerSummary=" + trainerMonthlyWorkload +
                 ", year=" + year +
                 ", month=" + month +
                 ", workloadHours=" + totalWorkload +

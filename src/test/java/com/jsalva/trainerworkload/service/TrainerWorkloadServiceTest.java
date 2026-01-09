@@ -5,8 +5,8 @@ import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.enums.ActionType;
-import com.jsalva.trainerworkload.entity.MonthlyWorkload;
-import com.jsalva.trainerworkload.entity.TrainerSummary;
+import com.jsalva.trainerworkload.domain.MonthlyWorkload;
+import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
 import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
 import com.jsalva.trainerworkload.service.impl.TrainerWorkloadServiceImpl;
@@ -40,7 +40,7 @@ public class TrainerWorkloadServiceTest {
     @Test
     void addWorkload_existingTrainer_existingMonth() {
         // given
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setUsername("Juan.Perez");
 
         MonthlyWorkload workload = new MonthlyWorkload();
@@ -99,12 +99,12 @@ public class TrainerWorkloadServiceTest {
         trainerWorkloadService.updateWorkload(dto, ActionType.ADD);
 
         // then
-        ArgumentCaptor<TrainerSummary> trainerCaptor =
-                ArgumentCaptor.forClass(TrainerSummary.class);
+        ArgumentCaptor<TrainerMonthlyWorkload> trainerCaptor =
+                ArgumentCaptor.forClass(TrainerMonthlyWorkload.class);
 
         verify(trainerSummaryRepository).save(trainerCaptor.capture());
 
-        TrainerSummary savedTrainer = trainerCaptor.getValue();
+        TrainerMonthlyWorkload savedTrainer = trainerCaptor.getValue();
 
         assertEquals("New.Trainer", savedTrainer.getUsername());
         assertEquals("New", savedTrainer.getFirstName());
@@ -117,7 +117,7 @@ public class TrainerWorkloadServiceTest {
     @Test
     void deleteWorkload_existingTrainer_existingMonth() {
         // given
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setUsername("Juan.Perez");
 
         MonthlyWorkload workload = new MonthlyWorkload();
@@ -152,7 +152,7 @@ public class TrainerWorkloadServiceTest {
     @Test
     void updateWorkload_delete_removesWorkload_whenResultIsZeroOrNegative(){
         // given
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setId(1L);
         trainer.setUsername("Trainer.One");
 
@@ -208,7 +208,7 @@ public class TrainerWorkloadServiceTest {
     @Test
     void getWorkload_existingTrainer_returnsAggregatedData() {
         // given
-        TrainerSummary trainer = new TrainerSummary();
+        TrainerMonthlyWorkload trainer = new TrainerMonthlyWorkload();
         trainer.setId(1L);
         trainer.setUsername("Juan.Perez");
         trainer.setFirstName("Juan");

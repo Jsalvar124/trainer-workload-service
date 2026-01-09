@@ -4,15 +4,14 @@ import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
 import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
-import com.jsalva.trainerworkload.entity.MonthlyWorkload;
-import com.jsalva.trainerworkload.entity.TrainerSummary;
+import com.jsalva.trainerworkload.domain.MonthlyWorkload;
+import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
 import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
 import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -44,16 +43,16 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     public void updateWorkload(TrainerWorkloadCommandMessageDto requestDto, ActionType actionType) {
         logger.debug("Processing workload for trainer: {}, action: {}", requestDto.username(), actionType);
 
-        TrainerSummary trainerSummary = findOrCreateTrainerSummary(requestDto);
+        TrainerMonthlyWorkload trainerMonthlyWorkload = findOrCreateTrainerSummary(requestDto);
 
         switch (actionType){
             case ADD -> {
                 logger.info("Attempting to Add workload to database");
-                addWorkload(trainerSummary, requestDto);
+                addWorkload(trainerMonthlyWorkload, requestDto);
             }
             case DELETE -> {
                 logger.info("Attempting to Delete workload from database");
-                deleteWorkload(trainerSummary, requestDto);
+                deleteWorkload(trainerMonthlyWorkload, requestDto);
             } case null, default -> throw new IllegalArgumentException(
                     "Unsupported action: " + actionType
             );
@@ -63,7 +62,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     // HELPER METHODS
 
-    private TrainerSummary findOrCreateTrainerSummary(TrainerWorkloadCommandMessageDto requestDto) {
+    private TrainerMonthlyWorkload findOrCreateTrainerSummary(TrainerWorkloadCommandMessageDto requestDto) {
         String username = requestDto.username();
         return trainerSummaryRepository.findByUsername(username)
                 .map(existing -> {
@@ -72,7 +71,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 })
                 .orElseGet(() -> {
                     logger.info("Creating new trainer: {}", username);
-                    TrainerSummary newTrainer = new TrainerSummary();
+                    TrainerMonthlyWorkload newTrainer = new TrainerMonthlyWorkload();
                     newTrainer.setUsername(username);
                     newTrainer.setFirstName(requestDto.firstName());
                     newTrainer.setLastName(requestDto.lastName());
@@ -81,10 +80,10 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 });
     }
 
-    private void addWorkload(TrainerSummary trainerSummary, TrainerWorkloadCommandMessageDto requestDto){
+    private void addWorkload(TrainerMonthlyWorkload trainerMonthlyWorkload, TrainerWorkloadCommandMessageDto requestDto){
 
         // Check if there is any training data for the given month.
-        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerSummary.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
+        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerMonthlyWorkload.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
         if(result.isPresent()){
             // There is data for the given month
             MonthlyWorkload monthlyWorkload = result.get();
@@ -97,7 +96,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         } else{
             // the given month has no trainings. Create new register.
             MonthlyWorkload newWorkload = new MonthlyWorkload();
-            newWorkload.setTrainerSummary(trainerSummary);
+            newWorkload.setTrainerSummary(trainerMonthlyWorkload);
             newWorkload.setYear(requestDto.trainingDate().getYear());
             newWorkload.setMonth(requestDto.trainingDate().getMonthValue());
             newWorkload.setTotalWorkload(requestDto.trainingDuration());
@@ -109,9 +108,9 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
     }
 
-    private void deleteWorkload(TrainerSummary trainerSummary, TrainerWorkloadCommandMessageDto requestDto){
+    private void deleteWorkload(TrainerMonthlyWorkload trainerMonthlyWorkload, TrainerWorkloadCommandMessageDto requestDto){
         // Check if there is any training data for the given month.
-        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerSummary.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
+        Optional<MonthlyWorkload> result = monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(trainerMonthlyWorkload.getUsername(), requestDto.trainingDate().getYear(), requestDto.trainingDate().getMonthValue());
         if(result.isPresent()){
             // There is data for the given month
             MonthlyWorkload monthlyWorkload = result.get();
@@ -120,7 +119,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             if (finalWorkload <= 0) {
                 monthlyWorkloadRepository.delete(monthlyWorkload); // delete row if it reaches zero or negative
                 logger.info("Workload for {} {}/{} removed (became zero or negative)",
-                        trainerSummary.getUsername(),
+                        trainerMonthlyWorkload.getUsername(),
                         monthlyWorkload.getYear(),
                         monthlyWorkload.getMonth());
                 return;
@@ -133,7 +132,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                     monthlyWorkload.getTotalWorkload());
         } else{
             logger.warn("No existing workload found for {} - {}/{}",
-                    trainerSummary.getUsername(),
+                    trainerMonthlyWorkload.getUsername(),
                     requestDto.trainingDate().getYear(),
                     requestDto.trainingDate().getMonthValue());
             // nothing to remove
@@ -147,7 +146,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
-        TrainerSummary trainer = trainerSummaryRepository
+        TrainerMonthlyWorkload trainer = trainerSummaryRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
 

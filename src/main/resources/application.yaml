@@ -9,25 +9,33 @@ spring:
     broker-url: tcp://localhost:61616
     user: admin
     password: admin
+  # MongoDB Configuration
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: trainerworkloaddb
+      username: admin
+      password: password
 
-  # H2 In-Memory Database
-  datasource:
-    url: jdbc:h2:mem:trainerworkloaddb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+  # H2 In-Memory Database (replaced by mongo)
+#  datasource:
+#    url: jdbc:h2:mem:trainerworkloaddb
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
 
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop  # Recreates schema on restart (in-memory)
-    show-sql: true
+#  jpa:
+#    database-platform: org.hibernate.dialect.H2Dialect
+#    hibernate:
+#      ddl-auto: create-drop  # Recreates schema on restart (in-memory)
+#    show-sql: true
 
   # H2 Console (optional, for debugging)
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
 
 # Logging Configuration
 logging:
