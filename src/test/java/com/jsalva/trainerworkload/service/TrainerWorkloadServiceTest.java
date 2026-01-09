@@ -5,10 +5,8 @@ import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.enums.ActionType;
-import com.jsalva.trainerworkload.domain.MonthlyWorkload;
 import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
-import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
-import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
+import com.jsalva.trainerworkload.repository.TrainerWorkloadRepository;
 import com.jsalva.trainerworkload.service.impl.TrainerWorkloadServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +27,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class TrainerWorkloadServiceTest {
     @Mock
-    private TrainerSummaryRepository trainerSummaryRepository;
+    private TrainerWorkloadRepository trainerWorkloadRepository;
 
     @Mock
     private MonthlyWorkloadRepository monthlyWorkloadRepository;
@@ -57,7 +55,7 @@ public class TrainerWorkloadServiceTest {
                         100
                 );
 
-        when(trainerSummaryRepository.findByUsername("Juan.Perez"))
+        when(trainerWorkloadRepository.findByUsername("Juan.Perez"))
                 .thenReturn(Optional.of(trainer));
 
         when(monthlyWorkloadRepository
@@ -86,10 +84,10 @@ public class TrainerWorkloadServiceTest {
                         100
                 );
 
-        when(trainerSummaryRepository.findByUsername("New.Trainer"))
+        when(trainerWorkloadRepository.findByUsername("New.Trainer"))
                 .thenReturn(Optional.empty());
 
-        when(trainerSummaryRepository.save(any()))
+        when(trainerWorkloadRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         when(monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(any(), anyInt(), anyInt()))
@@ -102,7 +100,7 @@ public class TrainerWorkloadServiceTest {
         ArgumentCaptor<TrainerMonthlyWorkload> trainerCaptor =
                 ArgumentCaptor.forClass(TrainerMonthlyWorkload.class);
 
-        verify(trainerSummaryRepository).save(trainerCaptor.capture());
+        verify(trainerWorkloadRepository).save(trainerCaptor.capture());
 
         TrainerMonthlyWorkload savedTrainer = trainerCaptor.getValue();
 
@@ -134,7 +132,7 @@ public class TrainerWorkloadServiceTest {
                         100
                 );
 
-        when(trainerSummaryRepository.findByUsername("Juan.Perez"))
+        when(trainerWorkloadRepository.findByUsername("Juan.Perez"))
                 .thenReturn(Optional.of(trainer));
 
         when(monthlyWorkloadRepository
@@ -171,7 +169,7 @@ public class TrainerWorkloadServiceTest {
                 60
         );
 
-        when(trainerSummaryRepository.findByUsername("Trainer.One"))
+        when(trainerWorkloadRepository.findByUsername("Trainer.One"))
                 .thenReturn(Optional.of(trainer));
 
         when(monthlyWorkloadRepository.findByTrainerSummary_UsernameAndYearAndMonth(
@@ -221,7 +219,7 @@ public class TrainerWorkloadServiceTest {
         workload.setMonth(12);
         workload.setTotalWorkload(240);
 
-        when(trainerSummaryRepository.findByUsername("Juan.Perez"))
+        when(trainerWorkloadRepository.findByUsername("Juan.Perez"))
                 .thenReturn(Optional.of(trainer));
 
         when(monthlyWorkloadRepository.findByTrainerSummary_Username("Juan.Perez"))

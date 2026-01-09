@@ -116,7 +116,7 @@ public class ActiveMqConfig {
         factory.setSessionAcknowledgeMode(jakarta.jms.Session.SESSION_TRANSACTED);
 
         // Concurrency (number of concurrent consumers)
-        factory.setConcurrency("1-1");  // 1 consumer
+        factory.setConcurrency("1-5");  // 1-5 consumers
 
         // Custom Error Handler - logs errors and tracks retries
         factory.setErrorHandler(t -> {

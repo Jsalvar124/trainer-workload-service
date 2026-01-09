@@ -4,12 +4,10 @@ import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
 import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
 import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
-import com.jsalva.trainerworkload.domain.MonthlyWorkload;
 import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
-import com.jsalva.trainerworkload.repository.MonthlyWorkloadRepository;
-import com.jsalva.trainerworkload.repository.TrainerSummaryRepository;
+import com.jsalva.trainerworkload.repository.TrainerWorkloadRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -27,14 +25,14 @@ import java.util.stream.Collectors;
 @Validated
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
-    private final TrainerSummaryRepository trainerSummaryRepository;
+    private final TrainerWorkloadRepository trainerWorkloadRepository;
     private final MonthlyWorkloadRepository monthlyWorkloadRepository;
 
 
     private static final Logger logger = LoggerFactory.getLogger(TrainerWorkloadServiceImpl.class);
 
-    public TrainerWorkloadServiceImpl(TrainerSummaryRepository trainerSummaryRepository, MonthlyWorkloadRepository monthlyWorkloadRepository) {
-        this.trainerSummaryRepository = trainerSummaryRepository;
+    public TrainerWorkloadServiceImpl(TrainerWorkloadRepository trainerWorkloadRepository, MonthlyWorkloadRepository monthlyWorkloadRepository) {
+        this.trainerWorkloadRepository = trainerWorkloadRepository;
         this.monthlyWorkloadRepository = monthlyWorkloadRepository;
     }
 
@@ -64,7 +62,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private TrainerMonthlyWorkload findOrCreateTrainerSummary(TrainerWorkloadCommandMessageDto requestDto) {
         String username = requestDto.username();
-        return trainerSummaryRepository.findByUsername(username)
+        return trainerWorkloadRepository.findByUsername(username)
                 .map(existing -> {
                     logger.debug("Trainer already exists: {}, using existing data", username);
                     return existing;  // no updates from new Trainer Workload Requests.
@@ -76,7 +74,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                     newTrainer.setFirstName(requestDto.firstName());
                     newTrainer.setLastName(requestDto.lastName());
                     newTrainer.setActive(requestDto.isActive());
-                    return trainerSummaryRepository.save(newTrainer);
+                    return trainerWorkloadRepository.save(newTrainer);
                 });
     }
 
@@ -146,7 +144,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
         logger.debug("Retrieving workload for trainer: {} (year: {}, month: {})", username, year, month);
 
-        TrainerMonthlyWorkload trainer = trainerSummaryRepository
+        TrainerMonthlyWorkload trainer = trainerWorkloadRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
 
