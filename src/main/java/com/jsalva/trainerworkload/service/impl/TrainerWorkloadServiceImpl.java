@@ -7,6 +7,7 @@ import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
+import com.jsalva.trainerworkload.mapper.TrainerWorkloadMapper;
 import com.jsalva.trainerworkload.repository.TrainerWorkloadRepository;
 import com.jsalva.trainerworkload.service.TrainerWorkloadService;
 import org.slf4j.Logger;
@@ -24,10 +25,13 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerWorkloadRepository trainerWorkloadRepository;
 
+    private final TrainerWorkloadMapper trainerWorkloadMapper;
+
     private static final Logger logger = LoggerFactory.getLogger(TrainerWorkloadServiceImpl.class);
 
-    public TrainerWorkloadServiceImpl(TrainerWorkloadRepository trainerWorkloadRepository) {
+    public TrainerWorkloadServiceImpl(TrainerWorkloadRepository trainerWorkloadRepository, TrainerWorkloadMapper trainerWorkloadMapper) {
         this.trainerWorkloadRepository = trainerWorkloadRepository;
+        this.trainerWorkloadMapper = trainerWorkloadMapper;
     }
 
     @Override
@@ -169,48 +173,30 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
 
         // Check if trainer exists
-        TrainerMonthlyWorkload trainer = trainerWorkloadRepository
+        TrainerMonthlyWorkload trainerWorkload = trainerWorkloadRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new TrainerNotFoundException("Trainer with username "+username+" not found"));
 
-        // Filter years based on parameters
-        List<TrainerMonthlyWorkload.YearSummary> filteredYears = trainer.getYears();
-
-        if (year != null) {
-            filteredYears = filteredYears.stream()
-                    .filter(y -> y.getYear().equals(year))
-                    .toList();
-        }
-
         // Map to DTOs
-        List<YearSummaryDto> yearSummaries = filteredYears.stream()
-                .map(yearSummary -> {
-                    // Filter months if specified
-                    List<TrainerMonthlyWorkload.MonthSummary> months = yearSummary.getMonths();
-                    if (month != null) {
-                        months = months.stream()
-                                .filter(m -> m.getMonth().equals(month))
-                                .toList();
-                    }
+        return trainerWorkloadMapper.toDto(trainerWorkload, year, month);
+    }
 
-                    // Map months to DTOs
-                    List<MonthSummaryDto> monthDtos = months.stream()
-                            .map(m -> new MonthSummaryDto(m.getMonth(), m.getTotalWorkload()))
-                            .sorted(Comparator.comparing(MonthSummaryDto::month))
-                            .toList();
-
-                    return new YearSummaryDto(yearSummary.getYear(), monthDtos);
-                })
-                .filter(y -> !y.monthSummaryDtoList().isEmpty()) // Remove years with no matching months
-                .sorted(Comparator.comparing(YearSummaryDto::year))
+    @Override
+    public List<TrainerWorkloadResponseDto> searchTrainersByName(String firstName, String lastName) {
+        List<TrainerMonthlyWorkload> workloads;
+        if (firstName != null && lastName != null) {
+            // Both provided - search by full name
+            workloads = trainerWorkloadRepository.findByFirstNameAndLastName(firstName, lastName);
+        } else if (firstName != null) {
+            // Only firstName provided
+            workloads = trainerWorkloadRepository.findByFirstName(firstName);
+        } else {
+            // Only lastName provided (not null validation on controller layer)
+            workloads = trainerWorkloadRepository.findByLastName(lastName);
+        }
+        List<TrainerWorkloadResponseDto> response = workloads.stream()
+                .map(w -> trainerWorkloadMapper.toDto(w))
                 .toList();
-
-        return new TrainerWorkloadResponseDto(
-                trainer.getUsername(),
-                trainer.getFirstName(),
-                trainer.getLastName(),
-                trainer.getIsActive(),
-                yearSummaries
-        );
+        return response;
     }
 }
