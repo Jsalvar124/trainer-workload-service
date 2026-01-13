@@ -143,7 +143,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 .orElse(null);
 
         if(monthSummary == null){
-            logger.error("Workload for month {} on year {} not found - trainer {} ", month,  year, trainerMonthlyWorkload.getUsername());
+            logger.warn("Workload for month {} on year {} not found - trainer {} ", month,  year, trainerMonthlyWorkload.getUsername());
             return;
         }
         // Check final workload is positive
@@ -156,9 +156,17 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 trainerMonthlyWorkload.getYears().remove(yearSummary);
                 logger.info("Removed year {}, no months remaining", year);
             }
+            // Save in database
+            trainerWorkloadRepository.save(trainerMonthlyWorkload);
         } else {
             monthSummary.setTotalWorkload(finalWorkload);
-            logger.debug("Reduced workload for {}-{}: {} minutes remaining", year, month, finalWorkload);
+            // Save in database
+            trainerWorkloadRepository.save(trainerMonthlyWorkload);
+            logger.debug("Reduced workload for {}-{}: {} minutes remaining",
+                    yearSummary.getYear(),
+                    monthSummary.getMonth(),
+                    monthSummary.getTotalWorkload()
+            );
         }
     }
 
