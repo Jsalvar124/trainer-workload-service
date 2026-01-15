@@ -17,7 +17,7 @@ import java.util.List;
 })
 public class TrainerMonthlyWorkload {
     @Id
-    private String id; //Mongo stores id as Id
+    private String id; //Mongo stores id as String
 
     @Indexed(unique = true)
     private String username;

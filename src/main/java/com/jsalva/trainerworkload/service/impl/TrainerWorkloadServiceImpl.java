@@ -1,9 +1,7 @@
 package com.jsalva.trainerworkload.service.impl;
 
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;
-import com.jsalva.trainerworkload.dto.response.MonthSummaryDto;
 import com.jsalva.trainerworkload.dto.response.TrainerWorkloadResponseDto;
-import com.jsalva.trainerworkload.dto.response.YearSummaryDto;
 import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.enums.ActionType;
 import com.jsalva.trainerworkload.exception.TrainerNotFoundException;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -147,7 +144,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             return;
         }
         // Check final workload is positive
-        int finalWorkload = monthSummary.getTotalWorkload() - requestDto.trainingDuration();
+        int finalWorkload = monthSummary.getTotalWorkload() - duration;
         if(finalWorkload <= 0){
             yearSummary.getMonths().remove(monthSummary);
             logger.info("Removed month {} from year {} (workload became zero/negative)", month, year);

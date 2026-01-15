@@ -9,20 +9,15 @@ spring:
       auto-startup: true
       acknowledge-mode: auto
 
-  h2:
-    console:
-      enabled: false
-
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+  # Use different database for tests
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: trainer_workload_test  # ← Different DB name
+      username: admin
+      password: password
+      authentication-database: admin
 
 logging:
   level:
