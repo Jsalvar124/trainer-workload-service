@@ -39,6 +39,7 @@ public class WorkloadController {
     public ResponseEntity<List<TrainerWorkloadResponseDto>> searchTrainersByName(
             @RequestParam(name = "first-name", required = false) String firstName,
             @RequestParam(name = "last-name", required = false) String lastName ){
+
         logger.info("Received workload query for trainer with name: {} and lastname: {}", firstName, lastName);
         List<TrainerWorkloadResponseDto> response = trainerWorkloadService.searchTrainersByName(firstName, lastName);
         return ResponseEntity.ok(response);
