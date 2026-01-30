@@ -1,4 +1,4 @@
-package com.jsalva.trainerworkload.cucumber;
+package com.jsalva.trainerworkload.cucumber.service;
 
 import com.jsalva.trainerworkload.domain.TrainerMonthlyWorkload;
 import com.jsalva.trainerworkload.dto.request.TrainerWorkloadCommandMessageDto;

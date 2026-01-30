@@ -8,6 +8,8 @@ spring:
     listener:
       auto-startup: true
       acknowledge-mode: auto
+    queue:
+      trainer-workload: trainer.workload.command.queue
 
   # Use different database for tests
   data:

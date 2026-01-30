@@ -1,4 +1,4 @@
-package com.jsalva.trainerworkload.cucumber;
+package com.jsalva.trainerworkload.cucumber.service;
 
 import com.jsalva.trainerworkload.repository.TrainerWorkloadRepository;
 import io.cucumber.spring.CucumberContextConfiguration;
