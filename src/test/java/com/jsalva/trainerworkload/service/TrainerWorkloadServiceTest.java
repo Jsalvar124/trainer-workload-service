@@ -233,7 +233,7 @@ public class TrainerWorkloadServiceTest {
                 .thenReturn(Optional.of(existingTrainer));  // Return existing, not empty
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> trainerWorkloadService.updateWorkload(request, null));
+                () -> trainerWorkloadService.updateWorkload(request, null)); // Null action type
 
         // Verify exception message
         assertTrue(exception.getMessage().contains("Unsupported action"));
