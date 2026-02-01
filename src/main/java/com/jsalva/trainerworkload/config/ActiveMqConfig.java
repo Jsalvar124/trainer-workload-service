@@ -72,7 +72,7 @@ public class ActiveMqConfig {
 
         // RedeliveryPolicy on consumer side
         RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
-        redeliveryPolicy.setMaximumRedeliveries(3);           // Retry 3 times
+        redeliveryPolicy.setMaximumRedeliveries(2);           // Retry 3 times
         redeliveryPolicy.setInitialRedeliveryDelay(2000);     // 2 second
         redeliveryPolicy.setUseExponentialBackOff(true);      // Exponential backoff
         redeliveryPolicy.setBackOffMultiplier(2.0);           // 2x wait time

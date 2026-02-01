@@ -88,6 +88,7 @@ class TrainerWorkloadConsumerTest {
         trainer.setLastName("Smith");
         trainer.setIsActive(true);
 
+
         TrainerMonthlyWorkload.YearSummary yearSummary = new TrainerMonthlyWorkload.YearSummary();
         yearSummary.setYear(2026);
 
@@ -99,7 +100,6 @@ class TrainerWorkloadConsumerTest {
         trainer.getYears().add(yearSummary);
         // persist trainer
         trainerWorkloadRepository.save(trainer);
-
         TrainerWorkloadCommandMessageDto messageDto = new TrainerWorkloadCommandMessageDto(
                 "jane.smith",
                 "Jane",
