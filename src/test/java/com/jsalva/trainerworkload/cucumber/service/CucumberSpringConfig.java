@@ -10,5 +10,4 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 public class CucumberSpringConfig {
     @MockitoBean
     private TrainerWorkloadRepository trainerWorkloadRepository;
-
 }

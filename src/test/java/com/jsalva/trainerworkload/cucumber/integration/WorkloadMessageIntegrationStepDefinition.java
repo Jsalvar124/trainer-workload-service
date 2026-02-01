@@ -35,7 +35,7 @@ public class WorkloadMessageIntegrationStepDefinition {
     @Value("${jms.queue.dead-letter:ActiveMQ.DLQ}")
     private String DLQ_NAME;
 
-    // ========== SCENARIO 1: Existing month and trainer (ADD) ==========
+    // ========== SCENARIO 1: NewTrainer add workload ==========
 
     @When("a workload message is sent to the queue with the following details:")
     public void a_workload_message_is_sent_to_the_queue_with_the_following_details(Map<String, String> messageDetails) {
@@ -82,6 +82,8 @@ public class WorkloadMessageIntegrationStepDefinition {
         assertThat(monthSummary.getTotalWorkload()).isEqualTo(totalWorkload);
     }
 
+    // ========== SCENARIO 2: Add Workload to existing trainer ==========
+
 
     @Given("a trainer {string} exists with {int} hours in December {int}")
     public void a_trainer_exists_with_hours_in_february(String username, Integer currentHours, Integer year) {
@@ -104,6 +106,7 @@ public class WorkloadMessageIntegrationStepDefinition {
         trainerWorkloadRepository.save(existingTrainer);
     }
 
+    // ========== SCENARIO 3: Add Workload Invalid Trainer Error ==========
 
     @When("an invalid workload message is sent for {string}")
     public void an_invalid_workload_message_is_sent_for(String errorUsername) {
@@ -142,6 +145,9 @@ public class WorkloadMessageIntegrationStepDefinition {
             assertThat(transactionId).isEqualTo("TEST-ERROR");
         });
     }
+
+    // ========== SCENARIO 3: Add Workload Invalid Message with missing username field ==========
+
 
     @When("a message with missing username is sent to the queue")
     public void a_message_with_missing_username_is_sent_to_the_queue() {

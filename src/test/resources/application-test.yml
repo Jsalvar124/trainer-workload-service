@@ -10,6 +10,7 @@ spring:
       acknowledge-mode: auto
     queue:
       trainer-workload: trainer.workload.command.queue
+      dead-letter: ActiveMQ.DLQ
 
   # Use different database for tests
   data:
