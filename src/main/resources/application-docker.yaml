@@ -6,17 +6,17 @@ spring:
     name: trainer-workload-service
   # ActiveMQ Configuration
   activemq:
-    broker-url: tcp://localhost:61616
-    user: admin
-    password: admin
+    broker-url: tcp://${ACTIVEMQ_HOST}:61616
+    user: ${ACTIVEMQ_USER}
+    password: ${ACTIVEMQ_PASSWORD}
   # MongoDB Configuration
   data:
     mongodb:
-      host: localhost
+      host: ${MONGODB_HOST}
       port: 27017
-      database: trainer_workload
-      username: admin
-      password: password
+      database: ${MONGODB_NAME}
+      username: ${MONGODB_USER}
+      password: ${MONGODB_PASSWORD}
       authentication-database: admin
 
 # Logging Configuration
